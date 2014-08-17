@@ -1,8 +1,3 @@
----
-output:
-  html_document:
-    keep_md: yes
----
 # Reproducible Research: Peer Assessment 1
 
 ## Contents
@@ -27,7 +22,8 @@ The code also uses the reshape2 library for melting and casting dataframes, this
 
 The following R code unzips the data zip file (assumed to be in the R working directory) and loads the csv file.    
 
-```{r loaddata}
+
+```r
 ## unzip the zip file and read the csv file
 unzip("activity.zip")
 activity <- read.csv("activity.csv")
@@ -38,7 +34,8 @@ melting and casting dataframes.
 
 It also preprocesses the data to create suitable date formats and to omit rows of NA data that would be          problematic for the mean calculations (this does not affect the calculations of total steps).
 
-```{r preprocessdata}
+
+```r
 ## open necessary libraries, note using ggplot2 for all plots (assumes packages already installed)
 library(ggplot2)
 library(reshape2)
@@ -49,7 +46,6 @@ activityProcessedfull$date <- as.Date(activityProcessedfull$date, "%Y-%m-%d")
 
 ## remove NAs from data (problematic for mean calculation)
 activityProcessed <- na.omit(activityProcessedfull)
-
 ```
 
 ## What is mean total number of steps taken per day?
@@ -58,7 +54,8 @@ The following code creates a histogram of the total number of steps taken each d
 That is within the range of steps in each band set by binwidth (500 set below) it shows the count of  
 how many times this number of steps was made across the days.  
 
-```{r histogramoftotalsteps}
+
+```r
 ## melt the dataframe, measured variables are "steps", to be shown by "date" and "interval"
 ## this melt file meets the requirements for analysis by date and later by interval
 activityMelt <- melt(activityProcessed, id.vars =c("date", "interval"), measure.vars = "steps")
@@ -76,25 +73,36 @@ plot <- plot + geom_histogram(binwidth = 500)
 print(plot)
 ```
 
+![plot of chunk histogramoftotalsteps](./PA1_template_files/figure-html/histogramoftotalsteps.png) 
+
 The following code calculates the mean and median total number of steps taken per day.  
 
-```{r meanandmedian}
 
+```r
 ## calculate the mean of the total number of steps for each day from the "activityCast" dataframe
 meanNoreplacesteps <- mean(activityCast$steps, na.rm = TRUE)
 
 print(meanNoreplacesteps)
+```
 
+```
+## [1] 10766
+```
+
+```r
 ## calculate the median of the total number of steps for each day from the "activityCast" dataframe
 medianNoreplacesteps <- median(activityCast$steps, na.rm = TRUE)
 
 print(medianNoreplacesteps)
+```
 
+```
+## [1] 10765
 ```
 
 This shows that:  
-- the mean total number of steps taken per day is `r meanNoreplacesteps`.  
-- the median total number of steps taken per day is `r medianNoreplacesteps`.
+- the mean total number of steps taken per day is 1.0766 &times; 10<sup>4</sup>.  
+- the median total number of steps taken per day is 10765.
 
 ## What is the average daily activity pattern?
 
@@ -102,7 +110,8 @@ The following code produces a time series plot of the 5-minute interval (x axis)
 of steps taken, averaged across all days (y axis).  It does this by casting a table "activityCastmean"  
 which gives for each inverval the mean number of steps over all days.
 
-```{r timeseriesplotintervals}
+
+```r
 ## cast dataframe to give average (mean) steps (variable) for each interval
 ## can use the same "activityMelt"" dataframe as before and re cast for the different summary
 activityCastmean <- dcast(activityMelt,  interval ~ variable, mean)
@@ -116,15 +125,24 @@ plot2 <- plot2 + geom_line()
 print(plot2)
 ```
 
+![plot of chunk timeseriesplotintervals](./PA1_template_files/figure-html/timeseriesplotintervals.png) 
+
 The following code calculates the maximum mean number of steps from any 5 minute interval averaged across   all the days.  This is the maximum value of steps from the "activityCastmean"" table.  
 The code then identifies the corresponding "interval" value(s) for which this maximum occurs.  
 
-```{r intervalwithmaxsteps}
+
+```r
 ## maximum average number of steps for any interval
 maxAvSteps <- max(activityCastmean$steps)
 
 print(maxAvSteps)
+```
 
+```
+## [1] 206.2
+```
+
+```r
 ## intervals where this maximum number of steps arises
 
 intervalId <- which(activityCastmean$steps == maxAvSteps)
@@ -133,21 +151,30 @@ intervalMax <- activityCastmean$interval[intervalId]
 print(intervalMax)
 ```
 
+```
+## [1] 835
+```
+
 This shows that:  
-- the maximum number of steps on average in any interval was `r maxAvSteps`  
-- this maximum arose in interval `r intervalMax`  
+- the maximum number of steps on average in any interval was 206.1698  
+- this maximum arose in interval 835  
 
 ## Imputing missing values
 
 The total number of missing values in the dataset (i.e. rows with NAs) is calculated by   
 the following code, which identifies NAs in the steps column of the original activity dataset:  
 
-```{r totalmissingvalues}
+
+```r
 missingvalues <- sum(is.na(activity$steps))
 print(missingvalues)
 ```
 
-This shows that the number of rows where there are NAs representing missing data is `r missingvalues`.  
+```
+## [1] 2304
+```
+
+This shows that the number of rows where there are NAs representing missing data is 2304.  
 
 The strategy chosen for filling in the missing values in the dataset is to replace missing interval values with the previously calculated mean value (across all days) for that same interval.  
 
@@ -166,8 +193,8 @@ If the entry is an NA then the loop does the following:
 - the loop continues through all observations in the dataset (no action is taken where the steps value is not missing)
 
 
-```{r imputemissingvalues}
 
+```r
 ## use the sugggested strategy to replace NAs with the mean value for that interval
 ## these replacement values have already been calculated in the "activityCastmean" table
 
@@ -191,12 +218,12 @@ for(i in 1:nrow(activityReplaced)){
     }
     ## If there isn't an NA entry in the steps for this row, then move on to the next row 
 }
-
 ```
 
 The following code produces a histogram of the total number of steps taken each day using this revised   dataset with imputed missing values:  
 
-```{r histogramwithimputedvalues}
+
+```r
 ## melt the dataframe, measured variables are "steps", to be shown by "date"
 activityReplacedMelt <- melt(activityReplaced, id.vars =c("date", "interval"), measure.vars = "steps")
 
@@ -213,28 +240,41 @@ plot3 <- plot3 + geom_histogram(binwidth = 500)
 print(plot3)
 ```
 
+![plot of chunk histogramwithimputedvalues](./PA1_template_files/figure-html/histogramwithimputedvalues.png) 
+
 The following code calculates the revised mean and median values for this revised dataset including imputed missing values using the summary in the "activityReplacedCast" table:  
 
 
-```{r revisedmeanandmedian}
+
+```r
 meanReplacedsteps <- mean(activityReplacedCast$steps)
 
 print(meanReplacedsteps)
+```
 
+```
+## [1] 10766
+```
+
+```r
 medianReplacedsteps <- median(activityReplacedCast$steps)
 
 print(medianReplacedsteps)
 ```
 
+```
+## [1] 10766
+```
+
 These values compare to the calculations produced in the first part of this report as follows:
 
 Mean:  
-- Dataset with NAs----------------------------Mean = `r meanNoreplacesteps`  
-- Dataset with imputed values replacing NAs---Mean = `r meanReplacedsteps`  
+- Dataset with NAs----------------------------Mean = 1.0766 &times; 10<sup>4</sup>  
+- Dataset with imputed values replacing NAs---Mean = 1.0766 &times; 10<sup>4</sup>  
 
 Median:  
-- Dataset with NAs----------------------------Median = `r medianNoreplacesteps`  
-- Dataset with imputed values replacing NAs---Median = `r medianReplacedsteps`  
+- Dataset with NAs----------------------------Median = 10765  
+- Dataset with imputed values replacing NAs---Median = 1.0766 &times; 10<sup>4</sup>  
 
 The result of imputing missing data using the given strategy is that the resulting mean value is unchanged.  
 This is to be expected, as the replacement values represent mean values of the existing data.  
@@ -248,7 +288,8 @@ is affected by the relative positioning ie order of the new data in the dataset.
 The following code creates a new factor variable with two levels "weekday" and "weekend" indicating whether a given date is a weekday or a weekend day in a vector "dayCategory". This is then attached to the full  
 dataset ("activityReplaced") using the cbind function:    
 
-```{r createdaycategory}
+
+```r
 ## using the activityReplaced dataset
 ## identify the day of the week for each day in the dataset
 dayCategory <- weekdays(activityReplaced$date)
@@ -260,14 +301,15 @@ dayCategory[dayCategory != "weekend"] <- "weekday"
 
 ## add this as a column to the dataset
 activityReplaceddayType <- cbind(activityReplaced, dayCategory)
-```           
+```
 
 The following code creates a panel plot containing a time series plot of the 5-minute interval (x-axis)  
 and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).  
 A facet plot is used in ggplot2 (using facet_wrap) with two rows to create a separate plot for  
 weekday days and weekend days.   
 
-```{r panelplot}
+
+```r
 ## create a panel plot containing a time series plot of the 5 minute interval (x axis) and
 ## average number of steps taken, averaged across all weekday days or weekend days (y axis)
 
@@ -285,5 +327,7 @@ plot4 <- plot4 + geom_line() + facet_wrap(~dayCategory, nrow = 2)
 
 print(plot4)
 ```
+
+![plot of chunk panelplot](./PA1_template_files/figure-html/panelplot.png) 
 
 The plot shows that there is a difference in the activity pattern between weekday days (on average) and weekend days (on average).
